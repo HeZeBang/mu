@@ -184,6 +184,8 @@ export default function Home() {
         </h2>
         <div className="prose">
           见腾讯文档：<a href="https://docs.qq.com/doc/DWGhHVnNTUXV3VGh2" className="text-blue-500" target="_blank" rel="noopener noreferrer">点击打开</a>
+          <br/>
+          宴会分类曲目如下：<img src="fes.jpg" alt="宴会分类曲目" />
         </div>
 
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
@@ -350,7 +352,7 @@ export default function Home() {
                     )} */}
                     <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
                       {music.charts.map(({ chart, index }: FilteredChart) => (
-                        <div key={index} className={`flex flex-col overflow-hidden gap-1 rounded-md shadow-md border-2`}>
+                        <div key={index} className={`flex flex-col overflow-hidden gap-1 rounded-md shadow-md`}>
                           <span className={`px-2 py-1 bg-gray-200 ${difficultyColors[index][0]} ${difficultyColors[index][1]} flex gap-3 items-center`}>
                             <b className="text-3xl w-[2em]"><code>{music.level[index]}</code></b>
                             <span>
