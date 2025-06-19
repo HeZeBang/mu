@@ -3,7 +3,8 @@
 import mdata from "./music_data_20250613.json";
 import ddata from "./chart_stats.json";
 import { Badge } from "@/components/ui/badge";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 
 interface ChartStat {
@@ -72,7 +73,24 @@ const difficultyColors = [
 export default function Home() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
-  const totalPages = Math.ceil(mdata.length / pageSize);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchFields, setSearchFields] = useState({
+    alias: true,
+    charter: true,
+    title: true,
+  });
+  useEffect(() => { setPage(1); }, [searchTerm, searchFields]);
+
+  const filteredData = mdata.filter((m: MusicData) => m.basic_info.genre != "宴会場").filter((music: MusicData) => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.trim().toLowerCase();
+    let match = false;
+    if (searchFields.alias && music.alias?.some(a => a.toLowerCase().includes(term))) match = true;
+    if (searchFields.title && music.title.toLowerCase().includes(term)) match = true;
+    if (searchFields.charter && music.charts.some(c => c.charter.toLowerCase().includes(term))) match = true;
+    return match;
+  });
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize));
   const chartStats = (ddata as ChartStats).charts;
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-4 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
@@ -85,8 +103,39 @@ export default function Home() {
           曲库浏览
         </h2>
 
+        <div className="flex flex-col sm:flex-row gap-2 items-center">
+          <input
+            type="text"
+            placeholder="输入关键词"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="border rounded px-2 py-1"
+          />
+          <label className="flex items-center gap-1">
+            <Checkbox
+              checked={searchFields.alias}
+              onCheckedChange={v => setSearchFields(f => ({ ...f, alias: !!v }))}
+            />
+            别名
+          </label>
+          <label className="flex items-center gap-1">
+            <Checkbox
+              checked={searchFields.charter}
+              onCheckedChange={v => setSearchFields(f => ({ ...f, charter: !!v }))}
+            />
+            谱师
+          </label>
+          <label className="flex items-center gap-1">
+            <Checkbox
+              checked={searchFields.title}
+              onCheckedChange={v => setSearchFields(f => ({ ...f, title: !!v }))}
+            />
+            乐曲名
+          </label>
+        </div>
+
         {
-          paginate(mdata, page, pageSize).map((music: MusicData) => {
+          paginate(filteredData, page, pageSize).map((music: MusicData) => {
             return (
               <div key={music.id} className="flex flex-col gap-4 max-w-4xl">
                 <div className="flex items-center gap-4">
@@ -105,7 +154,7 @@ export default function Home() {
                     <p className="text-sm text-gray-500">
                       {music.basic_info.artist}
                     </p>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Badge variant="outline">分类：{music.basic_info.genre}</Badge>
                       <Badge variant="outline">类型：{music.type}</Badge>
                       <Badge variant="outline">版本：{music.basic_info.from}</Badge>
@@ -144,7 +193,7 @@ export default function Home() {
                           {false && <Badge className="bg-pink-500 text-white">宴会</Badge>}
                           {index == 4 && <Badge variant="secondary">白谱</Badge>}
                           {chart.notes.reduce((acc, curr) => acc + curr, 0) > 1000 &&
-                            <Badge className="bg-orange-500, text-white">猩猩</Badge>}
+                            <Badge className="bg-amber-500 text-white">猩猩</Badge>}
                           {music.ds[index] > 14.5 &&
                             <Badge className="bg-blue-500 text-white">对决</Badge>}
                         </div>
