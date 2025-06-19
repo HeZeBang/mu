@@ -175,6 +175,7 @@ export default function Home() {
         <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
           斗技杯 2025 团队挑战赛
         </h1>
+        <img src="https://ipacel.cc/+/MoeCounter2/?name=mutech" alt="mutech counter" />
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
           曲库浏览
         </h2>
