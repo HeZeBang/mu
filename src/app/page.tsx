@@ -5,6 +5,7 @@ import ddata from "./chart_stats.json";
 import { Badge } from "@/components/ui/badge";
 import React, { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 
 
 interface ChartStat {
@@ -247,13 +248,14 @@ export default function Home() {
                       <Badge variant="outline">类型：{music.type}</Badge>
                       <Badge variant="outline">版本：{music.basic_info.from}</Badge>
                     </div>
+                    <div className="flex flex-wrap gap-2">
+                      {music.alias?.map((alias: string, index: number) => (
+                        <Badge variant="secondary" key={index}>{alias}</Badge>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {music.alias?.map((alias: string, index: number) => (
-                    <Badge variant="secondary" key={index}>{alias}</Badge>
-                  ))}
-                </div>
+                <Button>展开详情</Button>
                 <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
                   {music.charts.map(({ chart, index }: FilteredChart) => (
                     <div key={index} className={`flex flex-col overflow-hidden gap-1 rounded-md shadow-md border-2`}>
