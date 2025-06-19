@@ -1,7 +1,10 @@
-import Image from "next/image";
+"use client";
+
 import mdata from "./music_data_20250613.json";
 import ddata from "./chart_stats.json";
 import { Badge } from "@/components/ui/badge";
+import React, { useState } from "react";
+
 
 interface ChartStat {
   cnt: number;
@@ -67,6 +70,9 @@ const difficultyColors = [
 ];
 
 export default function Home() {
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(mdata.length / pageSize);
   const chartStats = (ddata as ChartStats).charts;
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-4 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
@@ -80,7 +86,7 @@ export default function Home() {
         </h2>
 
         {
-          paginate(mdata, 1, 10).map((music: MusicData) => {
+          paginate(mdata, page, pageSize).map((music: MusicData) => {
             return (
               <div key={music.id} className="flex flex-col gap-4 max-w-4xl">
                 <div className="flex items-center gap-4">
@@ -117,7 +123,7 @@ export default function Home() {
                       <span className={`px-2 py-1 bg-gray-200 ${difficultyColors[index][0]} ${difficultyColors[index][1]} flex gap-3 items-center`}>
                         <b className="text-3xl w-[2em]"><code>{music.level[index]}</code></b>
                         <span>
-                          {music.ds[index].toFixed(1)} / <small>拟合:</small> {chartStats[music.id][index].fit_diff.toFixed(2)}
+                          {music.ds[index].toFixed(1)} / <small>拟合:</small> {chartStats[music.id] ? chartStats[music.id][index].fit_diff.toFixed(2) : "-"}
                           <br />
                           <b>{difficultyNames[index]}</b>
                         </span>
@@ -133,7 +139,7 @@ export default function Home() {
                             <Badge className="bg-cyan-500 text-white">真超檄</Badge>}
                           {(chart.notes.at(chart.notes.length - 1) || 0) > 40 &&
                             <Badge className="bg-yellow-500 text-white">绝赞</Badge>}
-                          {(chartStats[music.id][index].fit_diff - music.ds[index] > 0.2) && music.ds[index] >= 12 && music.ds[index] < 13 &&
+                          {chartStats[music.id] && (chartStats[music.id][index].fit_diff - music.ds[index] > 0.2) && music.ds[index] >= 12 && music.ds[index] < 13 &&
                             <Badge>地雷</Badge>}
                           {false && <Badge className="bg-pink-500 text-white">宴会</Badge>}
                           {index == 4 && <Badge variant="secondary">白谱</Badge>}
@@ -159,6 +165,23 @@ export default function Home() {
         }
       </main>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
+        <button
+          className="px-3 py-1 rounded bg-gray-200 disabled:opacity-50"
+          onClick={() => setPage(page - 1)}
+          disabled={page === 1}
+        >
+          上一页
+        </button>
+        <span>
+          第 {page} / {totalPages} 页
+        </span>
+        <button
+          className="px-3 py-1 rounded bg-gray-200 disabled:opacity-50"
+          onClick={() => setPage(page + 1)}
+          disabled={page === totalPages}
+        >
+          下一页
+        </button>
       </footer>
     </div>
   );
