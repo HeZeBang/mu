@@ -178,6 +178,14 @@ export default function Home() {
           斗技杯 2025 团队挑战赛
         </h1>
         <img src="https://ipacel.cc/+/MoeCounter2/?name=mutech" alt="mutech counter" />
+        
+        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
+          规则（实时更新）
+        </h2>
+        <div className="prose">
+          见腾讯文档：<a href="https://docs.qq.com/doc/DWGhHVnNTUXV3VGh2" className="text-blue-500" target="_blank" rel="noopener noreferrer">点击打开</a>
+        </div>
+
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
           曲库浏览
         </h2>
