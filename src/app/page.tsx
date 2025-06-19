@@ -171,7 +171,7 @@ export default function Home() {
 
   const totalPages = Math.max(1, Math.ceil(filteredDataWithBadge.length / pageSize));
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-4 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+    <div className="min-h-screen pb-24 font-[family-name:var(--font-geist-sans)] flex flex-col items-center pt-20 p-5">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
 
         <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
@@ -182,14 +182,14 @@ export default function Home() {
           曲库浏览
         </h2>
 
-        <div className="flex flex-col sm:flex-row gap-2 items-center">
-          <input
+        <input
             type="text"
             placeholder="输入关键词"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             className="border rounded px-2 py-1"
           />
+        <div className="flex flex-row gap-2 items-center">
           <label className="flex items-center gap-1">
             <Checkbox
               checked={searchFields.alias}
@@ -391,7 +391,7 @@ export default function Home() {
           })
         }
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
+      <footer className="fixed bottom-0 left-0 right-0 flex gap-[24px] flex-wrap items-center justify-center py-4 bg-white border-t">
         <button
           className="px-3 py-1 rounded bg-gray-200 disabled:opacity-50"
           onClick={() => setPage(page - 1)}
