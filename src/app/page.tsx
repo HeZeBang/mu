@@ -76,13 +76,26 @@ interface BadgeTypes {
   xinge: boolean;
   zhenchaoxi: boolean;
   juezan: boolean;
+  slides: boolean;
   dilei: boolean;
   baipu: boolean;
   xingxing: boolean;
   duijue: boolean;
 }
 
-// badge 过滤后曲目类型
+// badge 配置，避免重复定义
+const badgeConfigs = [
+  { key: 'xiaoge', label: '小歌' },
+  { key: 'xinge', label: '新歌' },
+  { key: 'zhenchaoxi', label: '真超檄' },
+  { key: 'juezan', label: '绝赞' },
+  { key: 'slides', label: '星星' },
+  { key: 'dilei', label: '地雷' },
+  { key: 'baipu', label: '白谱' },
+  { key: 'xingxing', label: '猩猩' },
+  { key: 'duijue', label: '对决' },
+] as const;
+
 interface FilteredChart {
   chart: Chart;
   index: number;
@@ -99,14 +112,16 @@ function getBadgeTypes(
   index: number,
   chartStats: ChartStats["charts"]
 ): BadgeTypes {
+  const totalNotes = chart.notes.reduce((acc: number, curr: number) => acc + curr, 0);
   return {
     xiaoge: music.ds[index] < 13,
     xinge: ["舞萌DX 2023", "舞萌DX 2024", "舞萌DX 2025"].includes(music.basic_info.from) && index == 3,
     zhenchaoxi: ["maimai", "maimai PLUS", "maimai GreeN", "maimai GreeN PLUS"].includes(music.basic_info.from) && index == 3,
     juezan: (chart.notes.at(chart.notes.length - 1) || 0) > 40,
+    slides: chart.notes[2] / totalNotes > 0.2,
     dilei: chartStats[music.id] && (chartStats[music.id][index].fit_diff - music.ds[index] > 0.2) && music.ds[index] >= 12 && music.ds[index] < 13,
     baipu: index == 4,
-    xingxing: chart.notes.reduce((acc: number, curr: number) => acc + curr, 0) > 1000,
+    xingxing: totalNotes > 1000,
     duijue: music.ds[index] > 14.5,
   };
 }
@@ -120,11 +135,12 @@ export default function Home() {
     charter: true,
     title: true,
   });
-  const [badgeFilters, setBadgeFilters] = useState({
+  const [badgeFilters, setBadgeFilters] = useState<BadgeTypes>({
     xiaoge: false,
     xinge: false,
     zhenchaoxi: false,
     juezan: false,
+    slides: false,
     dilei: false,
     baipu: false,
     xingxing: false,
@@ -194,14 +210,15 @@ export default function Home() {
           </label>
         </div>
         <div className="flex flex-wrap gap-2 items-center">
-          <label><Checkbox checked={badgeFilters.xiaoge} onCheckedChange={v => setBadgeFilters(f => ({...f, xiaoge: !!v}))}/> 小歌</label>
-          <label><Checkbox checked={badgeFilters.xinge} onCheckedChange={v => setBadgeFilters(f => ({...f, xinge: !!v}))}/> 新歌</label>
-          <label><Checkbox checked={badgeFilters.zhenchaoxi} onCheckedChange={v => setBadgeFilters(f => ({...f, zhenchaoxi: !!v}))}/> 真超檄</label>
-          <label><Checkbox checked={badgeFilters.juezan} onCheckedChange={v => setBadgeFilters(f => ({...f, juezan: !!v}))}/> 绝赞</label>
-          <label><Checkbox checked={badgeFilters.dilei} onCheckedChange={v => setBadgeFilters(f => ({...f, dilei: !!v}))}/> 地雷</label>
-          <label><Checkbox checked={badgeFilters.baipu} onCheckedChange={v => setBadgeFilters(f => ({...f, baipu: !!v}))}/> 白谱</label>
-          <label><Checkbox checked={badgeFilters.xingxing} onCheckedChange={v => setBadgeFilters(f => ({...f, xingxing: !!v}))}/> 猩猩</label>
-          <label><Checkbox checked={badgeFilters.duijue} onCheckedChange={v => setBadgeFilters(f => ({...f, duijue: !!v}))}/> 对决</label>
+          {badgeConfigs.map(badge => (
+            <label className="flex items-center gap-1" key={badge.key}>
+              <Checkbox
+                checked={badgeFilters[badge.key]}
+                onCheckedChange={v => setBadgeFilters(f => ({ ...f, [badge.key]: !!v }))}
+              />
+              {badge.label}
+            </label>
+          ))}
         </div>
 
         {
