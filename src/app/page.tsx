@@ -34,6 +34,7 @@ interface Chart {
 }
 
 interface MusicData {
+  alias?: string[];
   basic_info: BasicInfo;
   charts: Chart[];
   ds: number[]; // difficulty scores
@@ -68,7 +69,7 @@ const difficultyColors = [
 export default function Home() {
   const chartStats = (ddata as ChartStats).charts;
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-2 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-4 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
 
         <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
@@ -81,7 +82,7 @@ export default function Home() {
         {
           paginate(mdata, 1, 10).map((music: MusicData) => {
             return (
-              <div key={music.id} className="flex flex-col gap-4">
+              <div key={music.id} className="flex flex-col gap-4 max-w-4xl">
                 <div className="flex items-center gap-4">
                   <img
                     src={`https://maimaidx.jp/maimai-mobile/img/Music/${music.basic_info.image_url}`}
@@ -106,16 +107,24 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  {music.alias?.map((alias, index) => (
+                    <Badge variant="secondary" key={index}>{alias}</Badge>
+                  ))}
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
                   {music.charts.map((chart, index) => (
                     <div key={index} className={`flex flex-col overflow-hidden gap-1 rounded-md shadow-md border-2`}>
-                      <span className={`px-2 py-1 bg-gray-200 ${difficultyColors[index][0]} ${difficultyColors[index][1]}`}>
-                        <b>{music.level[index]}</b> ({music.ds[index].toFixed(1)}) <small>拟合: {chartStats[music.id][index].fit_diff.toFixed(2)}</small>
-                        <br />
-                        <b>{difficultyNames[index]}</b>
+                      <span className={`px-2 py-1 bg-gray-200 ${difficultyColors[index][0]} ${difficultyColors[index][1]} flex gap-3 items-center`}>
+                        <b className="text-3xl w-[2em]"><code>{music.level[index]}</code></b>
+                        <span>
+                          {music.ds[index].toFixed(1)} / <small>拟合:</small> {chartStats[music.id][index].fit_diff.toFixed(2)}
+                          <br />
+                          <b>{difficultyNames[index]}</b>
+                        </span>
                       </span>
                       <div className="p-2">
 
-                        <div className="flex flex-col gap-1 pb-2">
+                        <div className="flex flex-row  flex-wrap gap-1 pb-2">
                           {music.ds[index] < 13 &&
                             <Badge className="bg-red-500 text-white">小歌</Badge>}
                           {["舞萌DX 2023", "舞萌DX 2024", "舞萌DX 2025"].includes(music.basic_info.from) && index == 3 &&
