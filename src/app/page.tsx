@@ -131,6 +131,7 @@ export default function Home() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
   const [searchTerm, setSearchTerm] = useState("");
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [searchFields, setSearchFields] = useState({
     alias: true,
     charter: true,
@@ -226,7 +227,7 @@ export default function Home() {
         {
           paginate(filteredDataWithBadge, page, pageSize).map((music: FilteredMusicData) => {
             return (
-              <div key={music.id} className="flex flex-col gap-4 max-w-4xl">
+              <div key={music.id} className="flex flex-col gap-4 max-w-4xl w-full">
                 <div className="flex items-center gap-4">
                   <img
                     src={`https://maimaidx.jp/maimai-mobile/img/Music/${music.basic_info.image_url}`}
@@ -247,6 +248,7 @@ export default function Home() {
                       <Badge variant="outline">分类：{music.basic_info.genre}</Badge>
                       <Badge variant="outline">类型：{music.type}</Badge>
                       <Badge variant="outline">版本：{music.basic_info.from}</Badge>
+                      <Badge variant="outline">BPM：{music.basic_info.bpm}</Badge>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {music.alias?.map((alias: string, index: number) => (
@@ -255,50 +257,135 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-                <Button>展开详情</Button>
-                <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
-                  {music.charts.map(({ chart, index }: FilteredChart) => (
-                    <div key={index} className={`flex flex-col overflow-hidden gap-1 rounded-md shadow-md border-2`}>
-                      <span className={`px-2 py-1 bg-gray-200 ${difficultyColors[index][0]} ${difficultyColors[index][1]} flex gap-3 items-center`}>
-                        <b className="text-3xl w-[2em]"><code>{music.level[index]}</code></b>
-                        <span>
-                          {music.ds[index].toFixed(1)} / <small>拟合:</small> {chartStats[music.id] ? chartStats[music.id][index].fit_diff.toFixed(2) : "-"}
-                          <br />
-                          <b>{difficultyNames[index]}</b>
-                        </span>
-                      </span>
-                      <div className="p-2">
-                        <div className="flex flex-row  flex-wrap gap-1 pb-2">
-                          {music.ds[index] < 13 &&
-                            <Badge className="bg-red-500 text-white">小歌</Badge>}
-                          {["舞萌DX 2023", "舞萌DX 2024", "舞萌DX 2025"].includes(music.basic_info.from) && index == 3 &&
-                            <Badge className="bg-blue-500 text-white">新歌</Badge>}
-                          {["maimai", "maimai PLUS", "maimai GreeN", "maimai GreeN PLUS"].includes(music.basic_info.from) && index == 3 &&
-                            <Badge className="bg-cyan-500 text-white">真超檄</Badge>}
-                          {(chart.notes.at(chart.notes.length - 1) || 0) > 40 &&
-                            <Badge className="bg-yellow-500 text-white">绝赞</Badge>}
-                          {chartStats[music.id] && (chartStats[music.id][index].fit_diff - music.ds[index] > 0.2) && music.ds[index] >= 12 && music.ds[index] < 13 &&
-                            <Badge>地雷</Badge>}
-                          {false && <Badge className="bg-pink-500 text-white">宴会</Badge>}
-                          {index == 4 && <Badge variant="secondary">白谱</Badge>}
-                          {chart.notes[2] / chart.notes.reduce((acc: number, curr: number) => acc + curr, 0) > 0.2 &&
-                            <Badge className="bg-blue-500 text-white">星星</Badge>}
-                          {chart.notes.reduce((acc: number, curr: number) => acc + curr, 0) > 1000 &&
-                            <Badge className="bg-amber-500 text-white">猩猩</Badge>}
-                          {music.ds[index] > 14.5 &&
-                            <Badge className="bg-purple-500 text-white">对决</Badge>}
+                <Button
+                  onClick={() => {
+                    setExpandedItems(prev => {
+                      const next = new Set(prev);
+                      if (next.has(music.id)) {
+                        next.delete(music.id);
+                      } else {
+                        next.add(music.id);
+                      }
+                      return next;
+                    });
+                  }}
+                  variant={expandedItems.has(music.id) ? "default" : "secondary"}
+                  className="w-full"
+                >
+                  {expandedItems.has(music.id) ? "收起详情" : "展开详情"}
+                </Button>
+                {expandedItems.has(music.id) && (
+                  <div className="flex flex-col gap-4 p-4 bg-gray-50 rounded-lg">
+                    {/* <div className="grid grid-cols-4 gap-4">
+                      <div className="col-span-1">
+                        <h4 className="font-bold mb-2">基本信息</h4>
+                        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
+                          <dt className="text-gray-600">BPM</dt>
+                          <dd>{music.basic_info.bpm}</dd>
+                          <dt className="text-gray-600">版本</dt>
+                          <dd>{music.basic_info.version}</dd>
+                          <dt className="text-gray-600">分类</dt>
+                          <dd>{music.basic_info.genre}</dd>
+                          <dt className="text-gray-600">类型</dt>
+                          <dd>{music.type}</dd>
+                        </dl>
+                      </div>
+                      <div className="col-span-2">
+                        <h4 className="font-bold mb-2">难度信息</h4>
+                        <div className="grid grid-cols-5 gap-2">
+                          {music.charts.map(({ chart, index }) => (
+                            <div key={index} className="text-sm">
+                              <div className={`font-bold ${difficultyColors[index][1]} mb-1`}>
+                                {difficultyNames[index]}
+                              </div>
+                              <dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1">
+                                <dt className="text-gray-600">定数</dt>
+                                <dd>{music.ds[index].toFixed(1)}</dd>
+                                <dt className="text-gray-600">拟合</dt>
+                                <dd>{chartStats[music.id] ? chartStats[music.id][index].fit_diff.toFixed(2) : "-"}</dd>
+                                <dt className="text-gray-600">谱师</dt>
+                                <dd>{chart.charter}</dd>
+                                <dt className="text-gray-600">物量</dt>
+                                <dd>{chart.notes.reduce((acc: number, curr: number) => acc + curr, 0)}</dd>
+                              </dl>
+                            </div>
+                          ))}
                         </div>
-                        <span>
-                          谱师：{chart.charter}
-                          <br />
-                          物量：{chart.notes.reduce((acc: number, curr: number) => acc + curr, 0)}
-                          <br />
-                          音符：{chart.notes.join("/")}
-                        </span>
                       </div>
                     </div>
-                  ))}
-                </div>
+                    {chartStats[music.id] && (
+                      <div>
+                        <h4 className="font-bold mb-2">统计数据</h4>
+                        <div className="grid grid-cols-5 gap-4">
+                          {music.charts.map(({ index }) => {
+                            const stat = chartStats[music.id][index];
+                            return (
+                              <div key={index} className="text-sm">
+                                <div className={`font-bold ${difficultyColors[index][1]} mb-1`}>
+                                  {difficultyNames[index]}
+                                </div>
+                                <dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1">
+                                  <dt className="text-gray-600">游玩次数</dt>
+                                  <dd>{stat.cnt}</dd>
+                                  <dt className="text-gray-600">平均达成率</dt>
+                                  <dd>{stat.avg.toFixed(2)}%</dd>
+                                  <dt className="text-gray-600">DX分数</dt>
+                                  <dd>{stat.avg_dx.toFixed(0)}</dd>
+                                  <dt className="text-gray-600">标准差</dt>
+                                  <dd>{stat.std_dev.toFixed(2)}</dd>
+                                </dl>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )} */}
+                    <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
+                      {music.charts.map(({ chart, index }: FilteredChart) => (
+                        <div key={index} className={`flex flex-col overflow-hidden gap-1 rounded-md shadow-md border-2`}>
+                          <span className={`px-2 py-1 bg-gray-200 ${difficultyColors[index][0]} ${difficultyColors[index][1]} flex gap-3 items-center`}>
+                            <b className="text-3xl w-[2em]"><code>{music.level[index]}</code></b>
+                            <span>
+                              {music.ds[index].toFixed(1)} / <small>拟合:</small> {chartStats[music.id] ? chartStats[music.id][index].fit_diff.toFixed(2) : "-"}
+                              <br />
+                              <b>{difficultyNames[index]}</b>
+                            </span>
+                          </span>
+                          <div className="p-2">
+                            <div className="flex flex-row  flex-wrap gap-1 pb-2">
+                              {music.ds[index] < 13 &&
+                                <Badge className="bg-red-500 text-white">小歌</Badge>}
+                              {["舞萌DX 2023", "舞萌DX 2024", "舞萌DX 2025"].includes(music.basic_info.from) && index == 3 &&
+                                <Badge className="bg-blue-500 text-white">新歌</Badge>}
+                              {["maimai", "maimai PLUS", "maimai GreeN", "maimai GreeN PLUS"].includes(music.basic_info.from) && index == 3 &&
+                                <Badge className="bg-cyan-500 text-white">真超檄</Badge>}
+                              {(chart.notes.at(chart.notes.length - 1) || 0) > 40 &&
+                                <Badge className="bg-yellow-500 text-white">绝赞</Badge>}
+                              {chartStats[music.id] && (chartStats[music.id][index].fit_diff - music.ds[index] > 0.2) && music.ds[index] >= 12 && music.ds[index] < 13 &&
+                                <Badge>地雷</Badge>}
+                              {false && <Badge className="bg-pink-500 text-white">宴会</Badge>}
+                              {index == 4 && <Badge variant="secondary">白谱</Badge>}
+                              {chart.notes[2] / chart.notes.reduce((acc: number, curr: number) => acc + curr, 0) > 0.2 &&
+                                <Badge className="bg-blue-500 text-white">星星</Badge>}
+                              {chart.notes.reduce((acc: number, curr: number) => acc + curr, 0) > 1000 &&
+                                <Badge className="bg-amber-500 text-white">猩猩</Badge>}
+                              {music.ds[index] > 14.5 &&
+                                <Badge className="bg-purple-500 text-white">对决</Badge>}
+                            </div>
+                            <span>
+                              谱师：{chart.charter}
+                              <br />
+                              物量：{chart.notes.reduce((acc: number, curr: number) => acc + curr, 0)}
+                              <br />
+                              音符：{chart.notes.join("/")}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
               </div>
             )
           })
