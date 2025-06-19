@@ -278,10 +278,12 @@ export default function Home() {
                             <Badge>地雷</Badge>}
                           {false && <Badge className="bg-pink-500 text-white">宴会</Badge>}
                           {index == 4 && <Badge variant="secondary">白谱</Badge>}
+                          {chart.notes[2] / chart.notes.reduce((acc: number, curr: number) => acc + curr, 0) > 0.2 &&
+                            <Badge className="bg-blue-500 text-white">星星</Badge>}
                           {chart.notes.reduce((acc: number, curr: number) => acc + curr, 0) > 1000 &&
                             <Badge className="bg-amber-500 text-white">猩猩</Badge>}
                           {music.ds[index] > 14.5 &&
-                            <Badge className="bg-blue-500 text-white">对决</Badge>}
+                            <Badge className="bg-purple-500 text-white">对决</Badge>}
                         </div>
                         <span>
                           谱师：{chart.charter}
