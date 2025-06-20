@@ -222,7 +222,7 @@ function MainContent() {
   }, [searchTerm, searchFields, badgeFilters, dsRange]);
 
 
-  const filteredData = mdata.filter((m: MusicData) => m.basic_info.genre != "宴会场").filter((music: MusicData) => {
+  const filteredData = mdata.filter((m: MusicData) => !(["宴会場", "宴会场"].includes(m.basic_info.genre))).filter((music: MusicData) => {
     if (!searchTerm.trim()) return true;
     const term = searchTerm.trim().toLowerCase();
     let match = false;
@@ -262,8 +262,9 @@ function MainContent() {
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
           更新日志
         </h2>
-        <ul>
+        <ul className="my-3 list-disc [&>li]:mt-2">
           <li>修复了地雷分类</li>
+          <li>添加定数筛选、URL参数</li>
         </ul>
 
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
