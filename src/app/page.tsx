@@ -120,7 +120,7 @@ function getBadgeTypes(
     zhenchaoxi: ["maimai", "maimai PLUS", "maimai GreeN", "maimai GreeN PLUS"].includes(music.basic_info.from) && index == 3,
     juezan: (chart.notes.at(chart.notes.length - 1) || 0) > 40,
     slides: chart.notes[2] / totalNotes > 0.2,
-    dilei: chartStats[music.id] && (chartStats[music.id][index].fit_diff - music.ds[index] > 0.2) && music.ds[index] >= 12 && music.ds[index] < 13,
+    dilei: chartStats[music.id] && (chartStats[music.id][index].fit_diff - music.ds[index] > 0.2) && music.ds[index] >= 12 && music.ds[index] < 14,
     baipu: index == 4,
     xingxing: totalNotes > 1000,
     duijue: music.ds[index] > 14.5,
@@ -185,13 +185,13 @@ export default function Home() {
         <ul>
           <li>修复了地雷分类</li>
         </ul>
-        
+
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
           规则（实时更新）
         </h2>
         <div className="prose">
           见腾讯文档：<a href="https://docs.qq.com/doc/DWGhHVnNTUXV3VGh2" className="text-blue-500" target="_blank" rel="noopener noreferrer">点击打开</a>
-          <br/>
+          <br />
           宴会分类曲目如下：<img src="fes.jpg" alt="宴会分类曲目" />
         </div>
 
@@ -200,12 +200,12 @@ export default function Home() {
         </h2>
 
         <input
-            type="text"
-            placeholder="输入关键词"
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="border rounded px-2 py-1"
-          />
+          type="text"
+          placeholder="输入关键词"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          className="border rounded px-2 py-1"
+        />
         <div className="flex flex-row gap-2 items-center">
           <label className="flex items-center gap-1">
             <Checkbox
@@ -291,7 +291,7 @@ export default function Home() {
                 >
                   {expandedItems.has(music.id) ? "收起详情" : "展开详情"}
                 </Button>
-                {expandedItems.has(music.id) && (
+                {expandedItems.has(music.id) ? (
                   <div className="flex flex-col gap-4 p-4 bg-gray-50 rounded-lg">
                     {/* <div className="grid grid-cols-4 gap-4">
                       <div className="col-span-1">
@@ -400,6 +400,35 @@ export default function Home() {
                         </div>
                       ))}
                     </div>
+                  </div>
+                ) : (
+                  <div>
+                    {music.charts.map(({ chart, index }: FilteredChart) => (
+                      <div className="flex flex-row flex-wrap gap-1 pb-2">
+                        <div className={`${difficultyColors[index][0]} ${difficultyColors[index][1]} rounded px-2`}>
+                          {music.level[index]}
+                        </div>
+                        {music.ds[index] < 13 &&
+                          <Badge className="bg-red-500 text-white">小歌</Badge>}
+                        {["舞萌DX 2023", "舞萌DX 2024", "舞萌DX 2025"].includes(music.basic_info.from) && index == 3 &&
+                          <Badge className="bg-blue-500 text-white">新歌</Badge>}
+                        {["maimai", "maimai PLUS", "maimai GreeN", "maimai GreeN PLUS"].includes(music.basic_info.from) && index == 3 &&
+                          <Badge className="bg-cyan-500 text-white">真超檄</Badge>}
+                        {(chart.notes.at(chart.notes.length - 1) || 0) > 40 &&
+                          <Badge className="bg-yellow-500 text-white">绝赞</Badge>}
+                        {chartStats[music.id] && (chartStats[music.id][index].fit_diff - music.ds[index] > 0.2) && music.ds[index] >= 12 && music.ds[index] < 14 &&
+                          <Badge>地雷</Badge>}
+                        {false && <Badge className="bg-pink-500 text-white">宴会</Badge>}
+                        {index == 4 && <Badge variant="secondary">白谱</Badge>}
+                        {chart.notes[2] / chart.notes.reduce((acc: number, curr: number) => acc + curr, 0) > 0.2 &&
+                          <Badge className="bg-blue-500 text-white">星星</Badge>}
+                        {chart.notes.reduce((acc: number, curr: number) => acc + curr, 0) > 1000 &&
+                          <Badge className="bg-amber-500 text-white">猩猩</Badge>}
+                        {music.ds[index] > 14.5 &&
+                          <Badge className="bg-purple-500 text-white">对决</Badge>}
+                      </div>
+                    ))
+                    }
                   </div>
                 )}
 
