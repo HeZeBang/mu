@@ -120,7 +120,7 @@ function getBadgeTypes(
     xiaoge: music.ds[index] < 13,
     xinge: ["舞萌DX 2023", "舞萌DX 2024", "舞萌DX 2025"].includes(music.basic_info.from) && index == 3,
     zhenchaoxi: ["maimai", "maimai PLUS", "maimai GreeN", "maimai GreeN PLUS"].includes(music.basic_info.from) && index == 3,
-    juezan: (chart.notes.at(chart.notes.length - 1) || 0) > 40,
+    juezan: (chart.notes.at(chart.notes.length - 1) || 0) > 40 && music.ds[index] <= 14.5,
     slides: chart.notes[2] / totalNotes > 0.2,
     dilei: chartStats[music.id] && (chartStats[music.id][index].fit_diff - music.ds[index] > 0.2) && music.ds[index] >= 12 && music.ds[index] < 14,
     baipu: index == 4,
@@ -398,7 +398,7 @@ export default function Home() {
                                 <Badge className="bg-blue-500 text-white">新歌</Badge>}
                               {["maimai", "maimai PLUS", "maimai GreeN", "maimai GreeN PLUS"].includes(music.basic_info.from) && index == 3 &&
                                 <Badge className="bg-cyan-500 text-white">真超檄</Badge>}
-                              {(chart.notes.at(chart.notes.length - 1) || 0) > 40 &&
+                              {(chart.notes.at(chart.notes.length - 1) || 0) > 40 && music.ds[index] <= 14.5 &&
                                 <Badge className="bg-yellow-500 text-white">绝赞</Badge>}
                               {chartStats[music.id] && (chartStats[music.id][index].fit_diff - music.ds[index] > 0.2) && music.ds[index] >= 12 && music.ds[index] < 14 &&
                                 <Badge>地雷</Badge>}
