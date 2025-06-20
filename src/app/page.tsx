@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from 'react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 
 interface ChartStat {
@@ -275,7 +276,14 @@ function MainContent() {
           <br />
           {/* 宴会分类曲目如下：<img src="fes.jpg" alt="宴会分类曲目" /> */}
           宴会分类曲目已经更新，并合并到腾讯文档，这里显示的不一定最新！
-          <img src="fes.jpg" alt="宴会分类曲目" />
+          <Collapsible>
+            <CollapsibleTrigger>
+              <Button variant="outline">查看宴会分类曲目</Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="p-2">
+              <img src="fes.png" alt="宴会分类曲目" />
+            </CollapsibleContent>
+          </Collapsible>
         </div>
 
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
