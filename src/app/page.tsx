@@ -178,6 +178,13 @@ export default function Home() {
           斗技杯 2025 团队挑战赛
         </h1>
         <img src="https://ipacel.cc/+/MoeCounter2/?name=mutech" alt="mutech counter" />
+
+        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
+          更新日志
+        </h2>
+        <ul>
+          <li>修复了地雷分类</li>
+        </ul>
         
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
           规则（实时更新）
@@ -371,7 +378,7 @@ export default function Home() {
                                 <Badge className="bg-cyan-500 text-white">真超檄</Badge>}
                               {(chart.notes.at(chart.notes.length - 1) || 0) > 40 &&
                                 <Badge className="bg-yellow-500 text-white">绝赞</Badge>}
-                              {chartStats[music.id] && (chartStats[music.id][index].fit_diff - music.ds[index] > 0.2) && music.ds[index] >= 12 && music.ds[index] < 13 &&
+                              {chartStats[music.id] && (chartStats[music.id][index].fit_diff - music.ds[index] > 0.2) && music.ds[index] >= 12 && music.ds[index] < 14 &&
                                 <Badge>地雷</Badge>}
                               {false && <Badge className="bg-pink-500 text-white">宴会</Badge>}
                               {index == 4 && <Badge variant="secondary">白谱</Badge>}
