@@ -7,6 +7,8 @@ import React, { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { Suspense } from 'react';
 
 
 interface ChartStat {
@@ -129,29 +131,96 @@ function getBadgeTypes(
   };
 }
 
-export default function Home() {
-  const [page, setPage] = useState(1);
+function MainContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const pageSize = 10;
-  const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(() => parseInt(searchParams.get("page") || "1"));
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get("searchTerm") || "");
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-  const [searchFields, setSearchFields] = useState({
-    alias: true,
-    charter: true,
-    title: true,
+  const [searchFields, setSearchFields] = useState(() => {
+    const fieldsParam = searchParams.get('searchFields');
+    if (fieldsParam === null) {
+      return { alias: true, charter: true, title: true };
+    }
+    const enabledFields = fieldsParam.split(',').filter(Boolean);
+    return {
+      alias: enabledFields.includes('alias'),
+      charter: enabledFields.includes('charter'),
+      title: enabledFields.includes('title'),
+    };
   });
-  const [badgeFilters, setBadgeFilters] = useState<BadgeTypes>({
-    xiaoge: false,
-    xinge: false,
-    zhenchaoxi: false,
-    juezan: false,
-    slides: false,
-    dilei: false,
-    baipu: false,
-    xingxing: false,
-    duijue: false,
+  const [badgeFilters, setBadgeFilters] = useState<BadgeTypes>(() => {
+    const initialFilters: BadgeTypes = {
+      xiaoge: false, xinge: false, zhenchaoxi: false, juezan: false,
+      slides: false, dilei: false, baipu: false, xingxing: false, duijue: false,
+    };
+    const badgesParam = searchParams.get('badgeFilters');
+    if (badgesParam) {
+      badgesParam.split(',').forEach((b) => {
+        if (b in initialFilters) {
+          (initialFilters as any)[b] = true;
+        }
+      });
+    }
+    return initialFilters;
   });
-  const [dsRange, setDsRange] = useState([1.0, 15.0]);
-  useEffect(() => { setPage(1); }, [searchTerm, searchFields, badgeFilters, dsRange]);
+  const [dsRange, setDsRange] = useState<[number, number]>(() => {
+    const rangeParam = searchParams.get('dsRange');
+    if (rangeParam) {
+      return rangeParam.split(',').map(Number) as [number, number];
+    }
+    return [1.0, 15.0];
+  });
+
+  const handleDsRangeChange = (value: number[]) => {
+    setDsRange([value[0], value[1]]);
+  }
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    // Page
+    if (page === 1) params.delete('page'); else params.set('page', String(page));
+
+    // SearchTerm
+    if (!searchTerm) params.delete('searchTerm'); else params.set('searchTerm', searchTerm);
+
+    // SearchFields - default is all true
+    const enabledSearchFields = Object.entries(searchFields).filter(([, v]) => v).map(([k]) => k);
+    if (enabledSearchFields.length === 3) {
+      params.delete('searchFields');
+    } else {
+      params.set('searchFields', enabledSearchFields.join(','));
+    }
+
+    // BadgeFilters - default is all false
+    const enabledBadgeFilters = Object.entries(badgeFilters).filter(([, v]) => v).map(([k]) => k);
+    if (enabledBadgeFilters.length === 0) {
+      params.delete('badgeFilters');
+    } else {
+      params.set('badgeFilters', enabledBadgeFilters.join(','));
+    }
+
+    // DsRange - default is [1.0, 15.0]
+    if (dsRange[0] === 1.0 && dsRange[1] === 15.0) {
+      params.delete('dsRange');
+    } else {
+      params.set('dsRange', dsRange.join(','));
+    }
+
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [page, searchTerm, searchFields, badgeFilters, dsRange, router, pathname, searchParams]);
+
+
+  const resetPage = () => setPage(1);
+
+  useEffect(() => {
+    resetPage();
+  }, [searchTerm, searchFields, badgeFilters, dsRange]);
+
 
   const filteredData = mdata.filter((m: MusicData) => m.basic_info.genre != "宴会场").filter((music: MusicData) => {
     if (!searchTerm.trim()) return true;
@@ -256,7 +325,7 @@ export default function Home() {
           <Slider
             id="ds-slider"
             value={dsRange}
-            onValueChange={setDsRange}
+            onValueChange={handleDsRangeChange}
             min={1}
             max={15}
             step={0.1}
@@ -315,70 +384,6 @@ export default function Home() {
                 </Button>
                 {expandedItems.has(music.id) ? (
                   <div className="flex flex-col gap-4 p-4 bg-gray-50 rounded-lg">
-                    {/* <div className="grid grid-cols-4 gap-4">
-                      <div className="col-span-1">
-                        <h4 className="font-bold mb-2">基本信息</h4>
-                        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
-                          <dt className="text-gray-600">BPM</dt>
-                          <dd>{music.basic_info.bpm}</dd>
-                          <dt className="text-gray-600">版本</dt>
-                          <dd>{music.basic_info.version}</dd>
-                          <dt className="text-gray-600">分类</dt>
-                          <dd>{music.basic_info.genre}</dd>
-                          <dt className="text-gray-600">类型</dt>
-                          <dd>{music.type}</dd>
-                        </dl>
-                      </div>
-                      <div className="col-span-2">
-                        <h4 className="font-bold mb-2">难度信息</h4>
-                        <div className="grid grid-cols-5 gap-2">
-                          {music.charts.map(({ chart, index }) => (
-                            <div key={index} className="text-sm">
-                              <div className={`font-bold ${difficultyColors[index][1]} mb-1`}>
-                                {difficultyNames[index]}
-                              </div>
-                              <dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1">
-                                <dt className="text-gray-600">定数</dt>
-                                <dd>{music.ds[index].toFixed(1)}</dd>
-                                <dt className="text-gray-600">拟合</dt>
-                                <dd>{chartStats[music.id] ? chartStats[music.id][index].fit_diff.toFixed(2) : "-"}</dd>
-                                <dt className="text-gray-600">谱师</dt>
-                                <dd>{chart.charter}</dd>
-                                <dt className="text-gray-600">物量</dt>
-                                <dd>{chart.notes.reduce((acc: number, curr: number) => acc + curr, 0)}</dd>
-                              </dl>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                    {chartStats[music.id] && (
-                      <div>
-                        <h4 className="font-bold mb-2">统计数据</h4>
-                        <div className="grid grid-cols-5 gap-4">
-                          {music.charts.map(({ index }) => {
-                            const stat = chartStats[music.id][index];
-                            return (
-                              <div key={index} className="text-sm">
-                                <div className={`font-bold ${difficultyColors[index][1]} mb-1`}>
-                                  {difficultyNames[index]}
-                                </div>
-                                <dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1">
-                                  <dt className="text-gray-600">游玩次数</dt>
-                                  <dd>{stat.cnt}</dd>
-                                  <dt className="text-gray-600">平均达成率</dt>
-                                  <dd>{stat.avg.toFixed(2)}%</dd>
-                                  <dt className="text-gray-600">DX分数</dt>
-                                  <dd>{stat.avg_dx.toFixed(0)}</dd>
-                                  <dt className="text-gray-600">标准差</dt>
-                                  <dd>{stat.std_dev.toFixed(2)}</dd>
-                                </dl>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )} */}
                     <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
                       {music.charts.map(({ chart, index }: FilteredChart) => (
                         <div key={index} className={`flex flex-col overflow-hidden gap-1 rounded-md shadow-md`}>
@@ -480,4 +485,12 @@ export default function Home() {
       </footer>
     </div>
   );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MainContent />
+    </Suspense>
+  )
 }
