@@ -273,7 +273,9 @@ function MainContent() {
         <div className="prose">
           见腾讯文档：<a href="https://docs.qq.com/doc/DWGhHVnNTUXV3VGh2" className="text-blue-500" target="_blank" rel="noopener noreferrer">点击打开</a>
           <br />
-          宴会分类曲目如下：<img src="fes.jpg" alt="宴会分类曲目" />
+          {/* 宴会分类曲目如下：<img src="fes.jpg" alt="宴会分类曲目" /> */}
+          宴会分类曲目已经更新，并合并到腾讯文档，这里显示的不一定最新！
+          <img src="fes.jpg" alt="宴会分类曲目" />
         </div>
 
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
