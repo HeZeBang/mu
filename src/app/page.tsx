@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import React, { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 
 
 interface ChartStat {
@@ -101,6 +102,7 @@ interface FilteredChart {
   chart: Chart;
   index: number;
   badgeTypes: BadgeTypes;
+  ds: number;
 }
 interface FilteredMusicData extends Omit<MusicData, 'charts'> {
   charts: FilteredChart[];
@@ -148,7 +150,8 @@ export default function Home() {
     xingxing: false,
     duijue: false,
   });
-  useEffect(() => { setPage(1); }, [searchTerm, searchFields]);
+  const [dsRange, setDsRange] = useState([1.0, 15.0]);
+  useEffect(() => { setPage(1); }, [searchTerm, searchFields, badgeFilters, dsRange]);
 
   const filteredData = mdata.filter((m: MusicData) => m.basic_info.genre != "宴会场").filter((music: MusicData) => {
     if (!searchTerm.trim()) return true;
@@ -162,9 +165,17 @@ export default function Home() {
   const chartStats = (ddata as ChartStats).charts;
 
   const filteredDataWithBadge: FilteredMusicData[] = filteredData.map((music: MusicData) => {
-    const filteredCharts: FilteredChart[] = music.charts.map((chart: Chart, index: number) => ({ chart, index, badgeTypes: getBadgeTypes(music, chart, index, chartStats) }))
-      .filter(({ badgeTypes }: { badgeTypes: BadgeTypes }) =>
-        Object.entries(badgeFilters).every(([key, value]) => !value || badgeTypes[key as keyof BadgeTypes])
+    const filteredCharts: FilteredChart[] = music.charts.map((chart: Chart, index: number) => ({
+      chart,
+      index,
+      badgeTypes: getBadgeTypes(music, chart, index, chartStats),
+      ds: music.ds[index]
+    }))
+      .filter(({ badgeTypes, ds }) => {
+        const badgeMatch = Object.entries(badgeFilters).every(([key, value]) => !value || badgeTypes[key as keyof BadgeTypes]);
+        const dsMatch = ds >= dsRange[0] && ds <= dsRange[1];
+        return badgeMatch && dsMatch;
+      }
       );
     return { ...music, charts: filteredCharts };
   }).filter((music: FilteredMusicData) => music.charts.length > 0);
@@ -239,6 +250,17 @@ export default function Home() {
               {badge.label}
             </label>
           ))}
+        </div>
+        <div className="flex flex-col gap-2 w-full pt-4 max-w-md">
+          <label htmlFor="ds-slider" className="font-semibold">定数范围: {dsRange[0].toFixed(1)} - {dsRange[1].toFixed(1)}</label>
+          <Slider
+            id="ds-slider"
+            value={dsRange}
+            onValueChange={setDsRange}
+            min={1}
+            max={15}
+            step={0.1}
+          />
         </div>
 
         {
@@ -404,7 +426,7 @@ export default function Home() {
                 ) : (
                   <div>
                     {music.charts.map(({ chart, index }: FilteredChart) => (
-                      <div className="flex flex-row flex-wrap gap-1 pb-2">
+                      <div className="flex flex-row flex-wrap gap-1 pb-2" key={index}>
                         <div className={`${difficultyColors[index][0]} ${difficultyColors[index][1]} rounded px-2`}>
                           {music.level[index]}
                         </div>
